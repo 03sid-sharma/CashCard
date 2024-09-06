@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.3'
 	id 'io.spring.dependency-management' version '1.1.6'
+	id 'com.adarshr.test-logger' version '3.2.0'
 }
 
 group = 'example'
@@ -9,7 +10,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(22)
 	}
 }
 
@@ -25,5 +26,17 @@ dependencies {
 }
 
 tasks.named('test') {
+	reports {
+        html.required.set(false)
+        junitXml.required.set(false)
+    }
 	useJUnitPlatform()
+}
+
+testlogger {
+    theme 'mocha'
+    showPassed = true
+    showFailed = true
+    showSkipped = true
+    showStandardStreams = false
 }
