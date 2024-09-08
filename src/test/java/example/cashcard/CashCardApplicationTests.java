@@ -26,7 +26,17 @@ class CashCardApplicationTests {
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		Number id = documentContext.read("$.id");
-		assertThat(id).isNotNull();
+		assertThat(id).isEqualTo(99);
+
+		Double amount = documentContext.read("$.amount");
+		assertThat(amount).isEqualTo(325.50);
+	}
+
+	@Test
+	void shouldNotReturnACashCardWithAnUnknownId(){
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards/1000", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(response.getBody()).isBlank();
 	}
 
 }
