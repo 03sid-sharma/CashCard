@@ -2,6 +2,7 @@ package example.cashcard;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,7 +16,12 @@ public class CashCardController {
         if (requestedId.equals(99L)) {
             CashCard cashCard = new CashCard(99L, 325.50);
             return ResponseEntity.ok(cashCard);
-        }else
+        } else
             return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping
+    private ResponseEntity<Void> createCashCard(){
+        return null;
     }
 }
