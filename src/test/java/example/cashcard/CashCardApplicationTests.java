@@ -22,16 +22,16 @@ class CashCardApplicationTests {
 
 	@Test
 	void shouldReturnATestCardWhenDataIsSaved(){
-		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards/99", String.class);
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards/1", String.class);
 		
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		Number id = documentContext.read("$.id");
-		assertThat(id).isEqualTo(99);
+		assertThat(id).isEqualTo(1);
 
 		Double amount = documentContext.read("$.amount");
-		assertThat(amount).isEqualTo(325.50);
+		assertThat(amount).isEqualTo(250.00);
 	}
 
 	@Test
@@ -50,6 +50,13 @@ class CashCardApplicationTests {
 		URI locationOfNewCashCard = createResponse.getHeaders().getLocation();
 		ResponseEntity<String> getResponse = restTemplate.getForEntity(locationOfNewCashCard, String.class);
 		assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		DocumentContext documentContext = JsonPath.parse(getResponse.getBody());
+		Number id = documentContext.read("$.id");
+		assertThat(id).isNotNull();
+		
+		Double amount = documentContext.read("$.amount");
+		assertThat(amount).isEqualTo(250.00);
 	}
 
 }
