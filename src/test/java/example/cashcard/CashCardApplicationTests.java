@@ -21,20 +21,6 @@ class CashCardApplicationTests {
 	TestRestTemplate restTemplate;
 
 	@Test
-	void shouldReturnATestCardWhenDataIsSaved(){
-		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards/1", String.class);
-		
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-		DocumentContext documentContext = JsonPath.parse(response.getBody());
-		Number id = documentContext.read("$.id");
-		assertThat(id).isEqualTo(1);
-
-		Double amount = documentContext.read("$.amount");
-		assertThat(amount).isEqualTo(250.00);
-	}
-
-	@Test
 	void shouldNotReturnACashCardWithAnUnknownId(){
 		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards/1000", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -58,5 +44,21 @@ class CashCardApplicationTests {
 		Double amount = documentContext.read("$.amount");
 		assertThat(amount).isEqualTo(250.00);
 	}
+
+	/* Please see shouldCreateANewCashCard test as this works on static data... */
+	// @Test
+	// void shouldReturnATestCardWhenDataIsSaved(){
+	// ResponseEntity<String> response = restTemplate.getForEntity("/cashcards/1",
+	// String.class);
+
+	// assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+	// DocumentContext documentContext = JsonPath.parse(response.getBody());
+	// Number id = documentContext.read("$.id");
+	// assertThat(id).isEqualTo(1);
+
+	// Double amount = documentContext.read("$.amount");
+	// assertThat(amount).isEqualTo(250.00);
+	// }
 
 }
