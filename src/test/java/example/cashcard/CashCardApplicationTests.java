@@ -1,7 +1,5 @@
 package example.cashcard;
 
-import org.assertj.core.util.Arrays;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,7 +34,7 @@ class CashCardApplicationTests {
 
 	@Test
 	void shouldCreateANewCashCard(){
-		CashCard newCashCard = new CashCard(null, 250.00);
+		CashCard newCashCard = new CashCard(null, 250.00, "sid");
 		ResponseEntity<Void> createResponse = restTemplate.postForEntity("/cashcards", newCashCard, Void.class);
 		assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
@@ -70,21 +68,60 @@ class CashCardApplicationTests {
 
 	@Test
 	void shouldReturnAllCashCardsWhenListIsRequested(){
-		// We have 1 cashcard created above for 250 amount rest 2 we'll add :)
-		restTemplate.postForEntity("/cashcards", new CashCard(null, 123.45), Void.class);
-		restTemplate.postForEntity("/cashcards", new CashCard(null, 1.00), Void.class);
+		// if Dirties context is missing test will fail as we have already created 1 cashcard above for 250.00 amount 
+		restTemplate.postForEntity("/cashcards",  new CashCard(null, 250.00, "sid"), Void.class);
+		restTemplate.postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
+		restTemplate.postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
 
 		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards", String.class); 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		
+		// in db table must have 3 cards
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		int cashCardCount = documentContext.read("$.length()");
 		assertThat(cashCardCount).isEqualTo(3);
 
+		// their ids must be
 		JSONArray ids = documentContext.read("$..id");
 		assertThat(ids).containsExactlyInAnyOrder(1, 2, 3);
 
+		// amount values must be
 		JSONArray amounts = documentContext.read("$..amount");
 		assertThat(amounts).containsExactlyInAnyOrder(250.00, 1.00, 123.45);
+	}
+
+	@Test
+	void shouldReturnAPageOfCashCards(){
+		// Add sample data in db dirties context will delete it :)
+		restTemplate.postForEntity("/cashcards", new CashCard(null, 250.00, "sid"), Void.class);
+		restTemplate.postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
+		restTemplate.postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
+		
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards?page=0&size=1&sort=amount,desc", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		DocumentContext documentContext = JsonPath.parse(response.getBody());
+		JSONArray page = documentContext.read("$[*]");
+		assertThat(page.size()).isEqualTo(1);
+
+		double amount = documentContext.read("$[0].amount");
+		assertThat(amount).isEqualTo(250.00);
+	}
+
+	@Test
+	void shouldReturnASortedPageOfCashCardsWithNoParametersAndUseDefaultValues(){
+		restTemplate.postForEntity("/cashcards", new CashCard(null, 250.00, "sid"), Void.class);
+		restTemplate.postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
+		restTemplate.postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
+
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		DocumentContext documentContext = JsonPath.parse(response.getBody());
+		JSONArray page = documentContext.read("$[*]");
+		assertThat(page.size()).isEqualTo(3);
+
+		JSONArray amount = documentContext.read("$..amount");
+		assertThat(amount).containsExactly(250.00, 123.45, 1.00);
 	}
 }

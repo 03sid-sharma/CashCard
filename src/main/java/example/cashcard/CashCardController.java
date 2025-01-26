@@ -1,7 +1,12 @@
 package example.cashcard;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,8 +49,17 @@ public class CashCardController {
         return ResponseEntity.created(locationOfNewCashCard).build();
     }
 
+    // pre-defined CRUD method for JSON array of objects
+    // @GetMapping()
+    // private ResponseEntity<Iterable<CashCard>> findAll(){
+    //     return ResponseEntity.ok(cashCardRepository.findAll());
+    // }
+
     @GetMapping()
-    private ResponseEntity<Iterable<CashCard>> findAll(){
-        return ResponseEntity.ok(cashCardRepository.findAll());
+    private ResponseEntity<List<CashCard>> findAll(Pageable pageable) {
+        Page<CashCard> page = cashCardRepository.findAll(
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        pageable.getSortOr(Sort.by(Sort.Direction.DESC, "amount"))));
+        return ResponseEntity.ok(page.getContent());
     }
 }
