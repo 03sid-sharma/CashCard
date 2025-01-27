@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+// @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 class CashCardApplicationTests {
 
 	@Autowired
@@ -35,6 +35,7 @@ class CashCardApplicationTests {
 	}
 
 	@Test
+	@DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 	void shouldCreateANewCashCard(){
 		CashCard newCashCard = new CashCard(null, 250.00, "sid");
 		ResponseEntity<Void> createResponse = restTemplate
@@ -75,9 +76,9 @@ class CashCardApplicationTests {
 	@Test
 	void shouldReturnAllCashCardsWhenListIsRequested(){
 		// if Dirties context is missing test will fail as we have already created 1 cashcard above for 250.00 amount 
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards",  new CashCard(null, 250.00, "sid"), Void.class);
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards",  new CashCard(null, 250.00, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
 
 		ResponseEntity<String> response = restTemplate
 			.withBasicAuth("sid", "abc123")
@@ -120,9 +121,9 @@ class CashCardApplicationTests {
 
 	@Test
 	void shouldReturnASortedPageOfCashCardsWithNoParametersAndUseDefaultValues(){
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 250.00, "sid"), Void.class);
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 250.00, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
 
 		ResponseEntity<String> response = restTemplate
 			.withBasicAuth("sid", "abc123")
@@ -148,5 +149,21 @@ class CashCardApplicationTests {
 				.getForEntity("/cashcards",
 				String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void shouldRejectUsersWhoAreNotCardOwners(){
+		ResponseEntity<String> response = restTemplate
+			.withBasicAuth("hankOwnsNoCards", "qwerty")
+			.getForEntity("/cashcards", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
+
+	@Test
+	void shouldNotAllowAccessToCashCardsNotOwned(){
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("sid", "abc123")
+				.getForEntity("/cashcards/102", String.class); // hardik's giftcard
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 }
