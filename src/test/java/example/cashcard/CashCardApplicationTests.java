@@ -35,7 +35,7 @@ class CashCardApplicationTests {
 	}
 
 	@Test
-	@DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+	@DirtiesContext
 	void shouldCreateANewCashCard(){
 		CashCard newCashCard = new CashCard(null, 250.00, "sid");
 		ResponseEntity<Void> createResponse = restTemplate
@@ -85,26 +85,26 @@ class CashCardApplicationTests {
 			.getForEntity("/cashcards", String.class); 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		
-		// in db table must have 3 cards
+		// in db table must have 4 cards
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		int cashCardCount = documentContext.read("$.length()");
-		assertThat(cashCardCount).isEqualTo(3);
+		assertThat(cashCardCount).isEqualTo(4);
 
 		// their ids must be
 		JSONArray ids = documentContext.read("$..id");
-		assertThat(ids).containsExactlyInAnyOrder(1, 2, 3);
+		assertThat(ids).containsExactlyInAnyOrder(102, 101, 100, 99);
 
 		// amount values must be
 		JSONArray amounts = documentContext.read("$..amount");
-		assertThat(amounts).containsExactlyInAnyOrder(250.00, 1.00, 123.45);
+		assertThat(amounts).containsExactlyInAnyOrder(250.00, 1.00, 123.45, 300.00);
 	}
 
 	@Test
 	void shouldReturnAPageOfCashCards(){
 		// Add sample data in db dirties context will delete it :)
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 250.00, "sid"), Void.class);
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
-		restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 250.00, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 123.45, "sid"), Void.class);
+		// restTemplate.withBasicAuth("sid", "abc123").postForEntity("/cashcards", new CashCard(null, 1.00, "sid"), Void.class);
 		
 		ResponseEntity<String> response = restTemplate
 			.withBasicAuth("sid", "abc123")
@@ -116,7 +116,7 @@ class CashCardApplicationTests {
 		assertThat(page.size()).isEqualTo(1);
 
 		double amount = documentContext.read("$[0].amount");
-		assertThat(amount).isEqualTo(250.00);
+		assertThat(amount).isEqualTo(300.00);
 	}
 
 	@Test
@@ -132,10 +132,10 @@ class CashCardApplicationTests {
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		JSONArray page = documentContext.read("$[*]");
-		assertThat(page.size()).isEqualTo(3);
+		assertThat(page.size()).isEqualTo(4);
 
 		JSONArray amount = documentContext.read("$..amount");
-		assertThat(amount).containsExactly(250.00, 123.45, 1.00);
+		assertThat(amount).containsExactly(300.00, 250.00, 123.45, 1.00);
 	}
 
 	@Test
@@ -164,6 +164,6 @@ class CashCardApplicationTests {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("sid", "abc123")
 				.getForEntity("/cashcards/102", String.class); // hardik's giftcard
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 	}
 }
