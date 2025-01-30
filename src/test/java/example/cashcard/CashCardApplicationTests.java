@@ -37,7 +37,7 @@ class CashCardApplicationTests {
 	@Test
 	@DirtiesContext
 	void shouldCreateANewCashCard(){
-		CashCard newCashCard = new CashCard(null, 250.00, "sid");
+		CashCard newCashCard = new CashCard(null, 250.00, null);
 		ResponseEntity<Void> createResponse = restTemplate
 			.withBasicAuth("sid", "abc123")
 			.postForEntity("/cashcards", newCashCard, Void.class);
@@ -88,15 +88,15 @@ class CashCardApplicationTests {
 		// in db table must have 4 cards
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		int cashCardCount = documentContext.read("$.length()");
-		assertThat(cashCardCount).isEqualTo(4);
+		assertThat(cashCardCount).isEqualTo(3);
 
 		// their ids must be
 		JSONArray ids = documentContext.read("$..id");
-		assertThat(ids).containsExactlyInAnyOrder(102, 101, 100, 99);
+		assertThat(ids).containsExactlyInAnyOrder(101, 100, 99);
 
 		// amount values must be
 		JSONArray amounts = documentContext.read("$..amount");
-		assertThat(amounts).containsExactlyInAnyOrder(250.00, 1.00, 123.45, 300.00);
+		assertThat(amounts).containsExactlyInAnyOrder(250.00, 1.00, 123.45);
 	}
 
 	@Test
@@ -116,7 +116,7 @@ class CashCardApplicationTests {
 		assertThat(page.size()).isEqualTo(1);
 
 		double amount = documentContext.read("$[0].amount");
-		assertThat(amount).isEqualTo(300.00);
+		assertThat(amount).isEqualTo(250.00);
 	}
 
 	@Test
@@ -132,10 +132,10 @@ class CashCardApplicationTests {
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		JSONArray page = documentContext.read("$[*]");
-		assertThat(page.size()).isEqualTo(4);
+		assertThat(page.size()).isEqualTo(3);
 
 		JSONArray amount = documentContext.read("$..amount");
-		assertThat(amount).containsExactly(300.00, 250.00, 123.45, 1.00);
+		assertThat(amount).containsExactly(250.00, 123.45, 1.00);
 	}
 
 	@Test
